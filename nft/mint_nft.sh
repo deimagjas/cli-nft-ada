@@ -6,7 +6,7 @@ fee='0'
 output='0'
 ipfs_hash='QmRfENJAHPyQwrE2FxitXRxAx1eAuncX8xyT1bDjSndXmY'
 LOCAL_PATH='/keys'
-NETWORK='mainnet'
+NETWORK='--mainnet'
 
 function cardano_cli () {
 	local CARDANO_NODE_SOCKET_PATH='/ipc/node.socket'
