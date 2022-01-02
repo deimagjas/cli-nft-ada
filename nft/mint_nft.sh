@@ -21,7 +21,12 @@ function cardano_cli () {
                         inputoutput/cardano-node "${arguments[@]}"
 }
 function generate_payment_keys () {
-	cardano_cli 'address' 'key-gen' '--verification-key-file' "${LOCAL_PATH}/payment.vkey" '--signing-key-file' "${LOCAL_PATH}/payment.skey"
+	local arguments=(
+		address key-gen 
+		--verification-key-file "${LOCAL_PATH}/payment.vkey" 
+		--signing-key-file "${LOCAL_PATH}/payment.skey"
+	)
+	cardano_cli "${arguments[@]}"
 }
 function generate_payment_address () {
 	local arguments=(
@@ -35,7 +40,12 @@ function generate_payment_address () {
 	PAYMENT_ADDRESS=$(cat 'payment.addr')
 }
 function get_finance_status () {
-	cardano_cli 'query' 'utxo' '--address' "${PAYMENT_ADDRESS}" '--mainnet'
+	local arguments=(
+		query utxo 
+		--address "${PAYMENT_ADDRESS}" 
+		"${NETWORK}"
+	)
+	cardano_cli "${arguments[@]}"
 }
 
 function main () {
