@@ -5,9 +5,25 @@ token_amount='1'
 fee='0'
 output='0'
 ipfs_hash='QmRfENJAHPyQwrE2FxitXRxAx1eAuncX8xyT1bDjSndXmY'
-LOCAL_PATH='/keys'
-NETWORK='--testnet'
+CHOOSE_NETWORK=${1}
 
+function configure_network () {
+	case  "${CHOOSE_NETWORK}" in 
+	mainnet)
+		NETWORK='--mainnet'       
+		VOLUME_IPC='cardano-node-ipc'
+		LOCAL_PATH='/keys'
+		;;
+	testenet) 
+		NETWORK=''
+		VOLUME_IPC='cardano-testnet-node-ipc'
+		LOCAL_PATH='/keys/testnet'
+		;;
+	*)
+		NETWORK=''
+		;;
+	esac
+}
 function cardano_cli () {
 	local CARDANO_NODE_SOCKET_PATH='/ipc/node.socket'
 	local arguments=(
@@ -16,7 +32,7 @@ function cardano_cli () {
 	docker run -it --entrypoint cardano-cli \
                         -e NETWORK="${NETWORK}" \
                         -e CARDANO_NODE_SOCKET_PATH="${CARDANO_NODE_SOCKET_PATH}" \
-                        -v cardano-node-ipc:/ipc \
+                        -v "${VOLUME_IPC}":/ipc \
 			-v "${PWD}":"${LOCAL_PATH}" \
                         inputoutput/cardano-node "${arguments[@]}"
 }
@@ -49,7 +65,8 @@ function get_finance_status () {
 }
 
 function main () {
-	cardano_cli  'query' 'tip' '--mainnet'
+	configure_network
+	cardano_cli  'query' 'tip' "${NETWORK}"
 	cardano_cli 'version'
 	echo "generando payment keys"
 	generate_payment_keys
