@@ -6,21 +6,25 @@ fee='0'
 output='0'
 ipfs_hash='QmRfENJAHPyQwrE2FxitXRxAx1eAuncX8xyT1bDjSndXmY'
 CHOOSE_NETWORK=${1}
+PAYMENT_ADDR_FILE='payment.addr'
 
 function configure_network () {
 	case  "${CHOOSE_NETWORK}" in 
 	mainnet)
-		NETWORK='--mainnet'       
+		NETWORK='--mainnet'
+		NETWORK_CLI=(--mainnet)
 		VOLUME_IPC='cardano-node-ipc'
 		LOCAL_PATH='/keys'
 		;;
-	testenet) 
-		NETWORK=''
+	testnet) 
+		NETWORK='testnet'
+		NETWORK_CLI=(--testnet-magic 1097911063)
 		VOLUME_IPC='cardano-testnet-node-ipc'
-		LOCAL_PATH='/keys/testnet'
+		LOCAL_PATH='/keys'
 		;;
 	*)
-		NETWORK=''
+		echo "bad option" 
+		return
 		;;
 	esac
 }
@@ -48,32 +52,36 @@ function generate_payment_address () {
 	local arguments=(
 		address build 
 		--payment-verification-key-file "${LOCAL_PATH}/payment.vkey" 
-		--out-file "${LOCAL_PATH}/payment.addr" 
-		"${NETWORK}"
+		--out-file "${LOCAL_PATH}/${PAYMENT_ADDR_FILE}" 
+		"${NETWORK_CLI[@]}"
 	)
 	cardano_cli "${arguments[@]}" 	
 	sudo chmod 755 'payment.addr'
+}
+function show_addr () {
 	PAYMENT_ADDRESS=$(cat 'payment.addr')
+	echo "dir: [${PAYMENT_ADDRESS}]"
 }
 function get_finance_status () {
 	local arguments=(
 		query utxo 
 		--address "${PAYMENT_ADDRESS}" 
-		"${NETWORK}"
+		"${NETWORK_CLI[@]}"
 	)
 	cardano_cli "${arguments[@]}"
 }
 
 function main () {
 	configure_network
-	cardano_cli  'query' 'tip' "${NETWORK}"
-	cardano_cli 'version'
-	echo "generando payment keys"
-	generate_payment_keys
-	echo "generando payment address"
-	#TODO: si la direccion existe, no crear una nueva
-	generate_payment_address
-	echo "dir: [${PAYMENT_ADDRESS}]"
+	arguments_query=(query tip "${NETWORK_CLI[@]}")
+	cardano_cli "${arguments_query[@]}"
+	if [[ ! -f "${PWD}/${PAYMENT_ADDR_FILE}" ]]; then
+		echo "generando payment keys"
+        	generate_payment_keys
+        	echo "generando payment address"
+		generate_payment_address
+	fi
+	show_addr
 	get_finance_status
 }
 
