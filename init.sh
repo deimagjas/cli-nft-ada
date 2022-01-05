@@ -22,10 +22,22 @@ function configure_network () {
                 ;;
         esac
 }
-CARDANO_NODE_SOCKET_PATH='/ipc/node.socket'
+function get_tip () {
+	CARDANO_NODE_SOCKET_PATH='/ipc/node.socket'
+	local cli_arguments=(
+		query tip 
+		--testnet-magic 1097911063
+	)
+	local arguments=(
+		-it
+		--entrypoint cardano-cli 
+		-e NETWORK="${NETWORK}" 
+		-e CARDANO_NODE_SOCKET_PATH="${CARDANO_NODE_SOCKET_PATH}" 
+		-v "${VOLUME_IPC}":/ipc 
+		inputoutput/cardano-node "${cli_arguments[@]}"	
+	)
+	docker run "${arguments[@]}"
+}
+echo "Obteniendo tips"
 configure_network
-docker run -it --entrypoint cardano-cli \
-			-e NETWORK=$NETWORK \
-			-e CARDANO_NODE_SOCKET_PATH=$CARDANO_NODE_SOCKET_PATH \
-		       	-v "${VOLUME_IPC}":/ipc \
-			inputoutput/cardano-node query tip --testnet-magic 1097911063
+get_tip
