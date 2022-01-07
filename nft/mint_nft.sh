@@ -11,7 +11,7 @@ PAYMENT_ADDR_FILE='payment.addr'
 function configure_network () {
 	case  "${CHOOSE_NETWORK}" in 
 	mainnet)
-		NETWORK='--mainnet'
+		NETWORK='mainnet'
 		NETWORK_CLI=(--mainnet)
 		VOLUME_IPC='cardano-node-ipc'
 		LOCAL_PATH='/keys'
@@ -59,7 +59,7 @@ function generate_payment_address () {
 	sudo chmod 755 'payment.addr'
 }
 function show_addr () {
-	PAYMENT_ADDRESS=$(cat 'payment.addr')
+	PAYMENT_ADDRESS=$(cat "${PAYMENT_ADDR_FILE}" )
 	echo "dir: [${PAYMENT_ADDRESS}]"
 }
 function get_finance_status () {
