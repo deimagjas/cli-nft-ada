@@ -14,19 +14,19 @@ function configure_network () {
 		NETWORK='mainnet'
 		NETWORK_CLI=(--mainnet)
 		VOLUME_IPC='cardano-node-ipc'
-		LOCAL_PATH='/keys'
 		;;
 	testnet) 
 		NETWORK='testnet'
 		NETWORK_CLI=(--testnet-magic 1097911063)
 		VOLUME_IPC='cardano-testnet-node-ipc'
-		LOCAL_PATH='/keys'
 		;;
 	*)
 		echo "bad option" 
 		return
 		;;
 	esac
+
+	LOCAL_PATH="${PWD}"/"${NETWORK}"
 }
 function cardano_cli () {
 	local CARDANO_NODE_SOCKET_PATH='/ipc/node.socket'
@@ -37,7 +37,7 @@ function cardano_cli () {
                         -e NETWORK="${NETWORK}" \
                         -e CARDANO_NODE_SOCKET_PATH="${CARDANO_NODE_SOCKET_PATH}" \
                         -v "${VOLUME_IPC}":/ipc \
-			-v "${PWD}":"${LOCAL_PATH}" \
+			-v "${LOCAL_PATH}":/keys  \
                         inputoutput/cardano-node "${arguments[@]}"
 }
 function generate_payment_keys () {
@@ -56,7 +56,7 @@ function generate_payment_address () {
 		"${NETWORK_CLI[@]}"
 	)
 	cardano_cli "${arguments[@]}" 	
-	sudo chmod 755 'payment.addr'
+	sudo chmod 755 "${LOCAL_PATH}"/"${PAYMENT_ADDR_FILE}"
 }
 function show_addr () {
 	PAYMENT_ADDRESS=$(cat "${PAYMENT_ADDR_FILE}" )
@@ -75,7 +75,7 @@ function main () {
 	configure_network
 	arguments_query=(query tip "${NETWORK_CLI[@]}")
 	cardano_cli "${arguments_query[@]}"
-	if [[ ! -f "${PWD}/${PAYMENT_ADDR_FILE}" ]]; then
+	if [[ ! -f "${LOCAL_PATH}/${PAYMENT_ADDR_FILE}" ]]; then
 		echo "generando payment keys"
         	generate_payment_keys
         	echo "generando payment address"
