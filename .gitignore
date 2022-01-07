@@ -1,3 +1,5 @@
 *.skey
 *.vkey
 *.addr
+nft/testnet/*
+nft/mainnet/*
